@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, RefreshControl, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '../contexts/AuthContext';
+import { useToast } from '../contexts/ToastContext';
 import { Avatar, Card, StatBadge, ProgressBar } from '../components';
 import { theme } from '../styles/theme';
 import { globalStyles } from '../styles/globalStyles';
@@ -9,6 +10,7 @@ import api from '../services/api';
 
 export const HomeScreen = ({ navigation }) => {
   const { user, refreshUser } = useAuth();
+  const toast = useToast();
   const [tasks, setTasks] = useState([]);
   const [stats, setStats] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
@@ -29,6 +31,7 @@ export const HomeScreen = ({ navigation }) => {
       }
     } catch (error) {
       console.error('Failed to load data:', error);
+      toast.error('Failed to load dashboard data');
     }
   };
 

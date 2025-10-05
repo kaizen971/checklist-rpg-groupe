@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, Alert, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '../contexts/AuthContext';
+import { useToast } from '../contexts/ToastContext';
 import { Input, Button } from '../components';
 import { theme } from '../styles/theme';
 import { globalStyles } from '../styles/globalStyles';
@@ -11,6 +12,7 @@ export const LoginScreen = ({ navigation }) => {
   const [password, setPassword] = useState('');
   const [errors, setErrors] = useState({});
   const { login, loading } = useAuth();
+  const toast = useToast();
 
   const validateForm = () => {
     const newErrors = {};
@@ -30,13 +32,17 @@ export const LoginScreen = ({ navigation }) => {
   };
 
   const handleLogin = async () => {
-    if (!validateForm()) return;
+    if (!validateForm()) {
+      toast.error('Please check your credentials');
+      return;
+    }
 
     try {
       await login(email, password);
+      toast.success('Welcome back, adventurer!');
       // Navigation is handled by the navigation component when user state changes
     } catch (error) {
-      Alert.alert('Login Failed', error.message);
+      toast.error(error.message || 'Login failed. Please try again.');
     }
   };
 

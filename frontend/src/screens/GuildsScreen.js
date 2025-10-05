@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, RefreshControl, Alert } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useToast } from '../contexts/ToastContext';
 import { Card, Button, Input } from '../components';
 import { theme } from '../styles/theme';
 import { globalStyles } from '../styles/globalStyles';
@@ -13,6 +14,7 @@ export const GuildsScreen = ({ navigation }) => {
   const [guildName, setGuildName] = useState('');
   const [guildDescription, setGuildDescription] = useState('');
   const [creating, setCreating] = useState(false);
+  const toast = useToast();
 
   useEffect(() => {
     loadGuilds();
@@ -23,7 +25,7 @@ export const GuildsScreen = ({ navigation }) => {
       const data = await api.getGuilds();
       setGuilds(data);
     } catch (error) {
-      Alert.alert('Error', 'Failed to load guilds');
+      toast.error('Failed to load guilds. Please try again.');
     }
   };
 
@@ -35,7 +37,7 @@ export const GuildsScreen = ({ navigation }) => {
 
   const handleCreateGuild = async () => {
     if (!guildName.trim()) {
-      Alert.alert('Error', 'Guild name is required');
+      toast.error('Guild name is required');
       return;
     }
 
@@ -49,9 +51,9 @@ export const GuildsScreen = ({ navigation }) => {
       setShowCreateForm(false);
       setGuildName('');
       setGuildDescription('');
-      Alert.alert('Success', 'Guild created successfully!');
+      toast.success(`Guild "${newGuild.name}" created! Gather your party!`);
     } catch (error) {
-      Alert.alert('Error', error.message);
+      toast.error(error.message || 'Failed to create guild');
     } finally {
       setCreating(false);
     }

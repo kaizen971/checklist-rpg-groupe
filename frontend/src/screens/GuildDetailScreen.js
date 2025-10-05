@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, RefreshControl, Alert, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '../contexts/AuthContext';
+import { useToast } from '../contexts/ToastContext';
 import { Card, Button, Avatar, Input } from '../components';
 import { theme } from '../styles/theme';
 import { globalStyles } from '../styles/globalStyles';
@@ -10,6 +11,7 @@ import api from '../services/api';
 export const GuildDetailScreen = ({ route }) => {
   const { guildId } = route.params;
   const { user, refreshUser } = useAuth();
+  const toast = useToast();
   const [guild, setGuild] = useState(null);
   const [tasks, setTasks] = useState([]);
   const [quests, setQuests] = useState([]);
@@ -35,7 +37,7 @@ export const GuildDetailScreen = ({ route }) => {
       setTasks(tasksData);
       setQuests(questsData);
     } catch (error) {
-      Alert.alert('Error', 'Failed to load guild data');
+      toast.error('Failed to load guild data. Please try again.');
     }
   };
 
@@ -47,7 +49,7 @@ export const GuildDetailScreen = ({ route }) => {
 
   const handleCreateTask = async () => {
     if (!taskTitle.trim()) {
-      Alert.alert('Error', 'Task title is required');
+      toast.error('Task title is required');
       return;
     }
 
@@ -66,9 +68,9 @@ export const GuildDetailScreen = ({ route }) => {
       setShowTaskForm(false);
       setTaskTitle('');
       setTaskDescription('');
-      Alert.alert('Success', 'Task created successfully!');
+      toast.success(`New ${taskType} quest created: "${newTask.title}"!`);
     } catch (error) {
-      Alert.alert('Error', error.message);
+      toast.error(error.message || 'Failed to create task');
     } finally {
       setCreating(false);
     }
@@ -77,14 +79,23 @@ export const GuildDetailScreen = ({ route }) => {
   const handleCompleteTask = async (taskId) => {
     try {
       const result = await api.completeTask(taskId, user._id);
-      Alert.alert(
-        'Task Completed! 🎉',
-        `You earned ${result.completion.xpGained} XP and ${result.completion.goldGained} Gold!`
-      );
+      const xpGained = result.completion.xpGained;
+      const goldGained = result.completion.goldGained;
+
+      // Afficher les récompenses
+      toast.taskCompleted(xpGained, goldGained);
+
+      // Vérifier si level up
+      if (result.user && result.user.level > user.level) {
+        setTimeout(() => {
+          toast.levelUp(result.user.level);
+        }, 1000);
+      }
+
       await refreshUser();
       await loadGuildData();
     } catch (error) {
-      Alert.alert('Error', error.message);
+      toast.error(error.message || 'Failed to complete task');
     }
   };
 
@@ -101,9 +112,9 @@ export const GuildDetailScreen = ({ route }) => {
             try {
               await api.deleteTask(taskId);
               setTasks(tasks.filter(t => t._id !== taskId));
-              Alert.alert('Success', 'Task deleted');
+              toast.success('Task deleted successfully');
             } catch (error) {
-              Alert.alert('Error', error.message);
+              toast.error(error.message || 'Failed to delete task');
             }
           },
         },

@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, Alert, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '../contexts/AuthContext';
+import { useToast } from '../contexts/ToastContext';
 import { Input, Button } from '../components';
 import { theme } from '../styles/theme';
 import { globalStyles } from '../styles/globalStyles';
@@ -13,6 +14,7 @@ export const RegisterScreen = ({ navigation }) => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [errors, setErrors] = useState({});
   const { register, loading } = useAuth();
+  const toast = useToast();
 
   const validateForm = () => {
     const newErrors = {};
@@ -44,13 +46,17 @@ export const RegisterScreen = ({ navigation }) => {
   };
 
   const handleRegister = async () => {
-    if (!validateForm()) return;
+    if (!validateForm()) {
+      toast.error('Please fix the errors in the form');
+      return;
+    }
 
     try {
       await register(username, email, password);
+      toast.success('Welcome to the adventure! Your hero has been created!');
       // Navigation is handled by the navigation component when user state changes
     } catch (error) {
-      Alert.alert('Registration Failed', error.message);
+      toast.error(error.message || 'Registration failed. Please try again.');
     }
   };
 
