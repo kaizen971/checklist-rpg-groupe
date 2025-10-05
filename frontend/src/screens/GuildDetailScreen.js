@@ -31,7 +31,7 @@ export const GuildDetailScreen = ({ route }) => {
     try {
       const [guildData, tasksData, questsData] = await Promise.all([
         api.getGuild(guildId),
-        api.getTasks({ guildId }),
+        api.getTasks({ guildId, userId: user._id }),
         api.getQuests({ guildId }),
       ]);
       setGuild(guildData);
@@ -83,8 +83,9 @@ export const GuildDetailScreen = ({ route }) => {
       const xpGained = result.completion.xpGained;
       const goldGained = result.completion.goldGained;
 
-      // Retirer la tâche de la liste immédiatement
-      setTasks(tasks.filter(t => t._id !== taskId));
+      // Ne pas retirer la tâche immédiatement, elle sera retirée quand tous les membres l'auront complétée
+      // Recharger les données pour voir l'état mis à jour
+      await loadGuildData();
 
       // Afficher les récompenses
       toast.taskCompleted(xpGained, goldGained);
@@ -245,10 +246,22 @@ export const GuildDetailScreen = ({ route }) => {
               <Card key={task._id}>
                 <View style={globalStyles.rowBetween}>
                   <View style={styles.taskInfo}>
-                    <Text style={styles.taskTitle}>{task.title}</Text>
+                    <View style={styles.taskTitleRow}>
+                      <Text style={styles.taskTitle}>{task.title}</Text>
+                      {task.userCompleted && (
+                        <View style={styles.completedBadge}>
+                          <Ionicons name="checkmark-circle" size={20} color={theme.colors.success} />
+                        </View>
+                      )}
+                    </View>
                     {task.description && (
                       <Text style={globalStyles.textSecondary} numberOfLines={2}>
                         {task.description}
+                      </Text>
+                    )}
+                    {guild && task.completionsCount > 0 && (
+                      <Text style={styles.completionProgress}>
+                        {task.completionsCount} / {guild.members?.length || 0} members completed
                       </Text>
                     )}
                     <View style={styles.taskFooter}>
@@ -270,11 +283,12 @@ export const GuildDetailScreen = ({ route }) => {
                 </View>
                 <View style={styles.taskActions}>
                   <Button
-                    title="Complete"
+                    title={task.userCompleted ? "Completed ✓" : "Complete"}
                     onPress={() => handleCompleteTask(task._id)}
-                    variant="success"
+                    variant={task.userCompleted ? "outline" : "success"}
                     size="small"
                     style={styles.actionButton}
+                    disabled={task.userCompleted}
                   />
                   {user._id === task.createdBy?._id && (
                     <Button
@@ -418,10 +432,25 @@ const styles = StyleSheet.create({
   taskInfo: {
     flex: 1,
   },
+  taskTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: theme.spacing.xs,
+  },
   taskTitle: {
     fontSize: theme.fontSize.md,
     fontWeight: theme.fontWeight.semibold,
     color: theme.colors.text,
+    flex: 1,
+  },
+  completedBadge: {
+    marginLeft: theme.spacing.xs,
+  },
+  completionProgress: {
+    fontSize: theme.fontSize.xs,
+    color: theme.colors.primary,
+    fontWeight: theme.fontWeight.medium,
+    marginTop: theme.spacing.xs,
     marginBottom: theme.spacing.xs,
   },
   taskFooter: {

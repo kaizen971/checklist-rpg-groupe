@@ -79,7 +79,17 @@ const TaskSchema = new mongoose.Schema({
   goldReward: { type: Number, default: 5 },
   guildId: { type: mongoose.Schema.Types.ObjectId, ref: 'Guild' },
   createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-  createdAt: { type: Date, default: Date.now }
+  createdAt: { type: Date, default: Date.now },
+  isRecurring: { type: Boolean, default: true },
+  originalTaskData: {
+    title: String,
+    description: String,
+    type: String,
+    xpReward: Number,
+    goldReward: Number,
+    guildId: mongoose.Schema.Types.ObjectId,
+    createdBy: mongoose.Schema.Types.ObjectId
+  }
 });
 
 const CompletionSchema = new mongoose.Schema({
@@ -87,7 +97,8 @@ const CompletionSchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   completedAt: { type: Date, default: Date.now },
   xpGained: Number,
-  goldGained: Number
+  goldGained: Number,
+  guildId: { type: mongoose.Schema.Types.ObjectId, ref: 'Guild' }
 });
 
 const QuestSchema = new mongoose.Schema({
@@ -111,6 +122,93 @@ const User = mongoose.model('User', UserSchema);
 const Task = mongoose.model('Task', TaskSchema);
 const Completion = mongoose.model('Completion', CompletionSchema);
 const Quest = mongoose.model('Quest', QuestSchema);
+
+// Schema pour stocker les tâches archivées (supprimées temporairement)
+const ArchivedTaskSchema = new mongoose.Schema({
+  originalTaskData: {
+    title: String,
+    description: String,
+    type: String,
+    xpReward: Number,
+    goldReward: Number,
+    guildId: mongoose.Schema.Types.ObjectId,
+    createdBy: mongoose.Schema.Types.ObjectId
+  },
+  deletedAt: { type: Date, default: Date.now },
+  shouldRestore: { type: Boolean, default: true }
+});
+
+const ArchivedTask = mongoose.model('ArchivedTask', ArchivedTaskSchema);
+
+// Fonction pour restaurer les tâches monthly le 1er du mois
+async function restoreMonthlyTasks() {
+  try {
+    const today = new Date();
+    const dayOfMonth = today.getDate();
+
+    // Exécuter uniquement le 1er du mois
+    if (dayOfMonth !== 1) {
+      return;
+    }
+
+    console.log('Restauration des tâches monthly...');
+
+    // Récupérer toutes les tâches archivées qui doivent être restaurées
+    const archivedTasks = await ArchivedTask.find({ shouldRestore: true });
+
+    for (const archived of archivedTasks) {
+      const taskData = archived.originalTaskData;
+
+      // Vérifier que la guilde existe toujours
+      const guild = await Guild.findById(taskData.guildId);
+      if (!guild) {
+        // Supprimer l'archive si la guilde n'existe plus
+        await ArchivedTask.findByIdAndDelete(archived._id);
+        continue;
+      }
+
+      // Recréer la tâche avec les données originales
+      const newTask = new Task({
+        title: taskData.title,
+        description: taskData.description,
+        type: taskData.type,
+        xpReward: taskData.xpReward,
+        goldReward: taskData.goldReward,
+        guildId: taskData.guildId,
+        createdBy: taskData.createdBy,
+        originalTaskData: taskData
+      });
+
+      await newTask.save();
+
+      // Broadcast la nouvelle tâche via WebSocket
+      wss.clients.forEach((client) => {
+        if (client.readyState === WebSocket.OPEN) {
+          client.send(JSON.stringify({
+            type: 'NEW_TASK',
+            data: newTask,
+            isRestored: true
+          }));
+        }
+      });
+
+      console.log(`Tâche restaurée: ${newTask.title} pour la guilde ${guild.name}`);
+
+      // Supprimer l'archive après restauration
+      await ArchivedTask.findByIdAndDelete(archived._id);
+    }
+
+    console.log(`${archivedTasks.length} tâche(s) monthly restaurée(s)`);
+  } catch (error) {
+    console.error('Erreur lors de la restauration des tâches monthly:', error);
+  }
+}
+
+// Vérifier toutes les heures si on doit restaurer les tâches monthly
+setInterval(restoreMonthlyTasks, 60 * 60 * 1000); // Toutes les heures
+
+// Exécuter au démarrage du serveur
+setTimeout(restoreMonthlyTasks, 5000); // 5 secondes après le démarrage
 
 // WebSocket Connection Handler
 wss.on('connection', (ws) => {
@@ -356,12 +454,30 @@ app.put('/checklist-rpg-groupe/users/:id', async (req, res) => {
 // Task Routes
 app.get('/checklist-rpg-groupe/tasks', async (req, res) => {
   try {
-    const { guildId, type } = req.query;
+    const { guildId, type, userId } = req.query;
     const filter = {};
     if (guildId) filter.guildId = guildId;
     if (type) filter.type = type;
 
     const tasks = await Task.find(filter).populate('createdBy');
+
+    // Si un userId est fourni, ajouter les informations de complétion
+    if (userId) {
+      const tasksWithCompletions = await Promise.all(
+        tasks.map(async (task) => {
+          const completionsCount = await Completion.countDocuments({ taskId: task._id });
+          const userCompleted = await Completion.exists({ taskId: task._id, userId });
+
+          return {
+            ...task.toObject(),
+            completionsCount,
+            userCompleted: !!userCompleted
+          };
+        })
+      );
+      return res.json(tasksWithCompletions);
+    }
+
     res.json(tasks);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -370,7 +486,22 @@ app.get('/checklist-rpg-groupe/tasks', async (req, res) => {
 
 app.post('/checklist-rpg-groupe/tasks', async (req, res) => {
   try {
-    const task = new Task(req.body);
+    const taskData = req.body;
+
+    // Sauvegarder les données originales pour les tâches récurrentes
+    if (taskData.type === 'monthly') {
+      taskData.originalTaskData = {
+        title: taskData.title,
+        description: taskData.description,
+        type: taskData.type,
+        xpReward: taskData.xpReward,
+        goldReward: taskData.goldReward,
+        guildId: taskData.guildId,
+        createdBy: taskData.createdBy
+      };
+    }
+
+    const task = new Task(taskData);
     await task.save();
 
     // Broadcast new task via WebSocket
@@ -405,12 +536,19 @@ app.post('/checklist-rpg-groupe/completions', async (req, res) => {
     const task = await Task.findById(taskId);
     if (!task) return res.status(404).json({ error: 'Task not found' });
 
+    // Vérifier si l'utilisateur a déjà complété cette tâche
+    const existingCompletion = await Completion.findOne({ taskId, userId });
+    if (existingCompletion) {
+      return res.status(400).json({ error: 'You have already completed this task!' });
+    }
+
     // Create completion
     const completion = new Completion({
       taskId,
       userId,
       xpGained: task.xpReward,
-      goldGained: task.goldReward
+      goldGained: task.goldReward,
+      guildId: task.guildId
     });
     await completion.save();
 
@@ -428,8 +566,38 @@ app.post('/checklist-rpg-groupe/completions', async (req, res) => {
 
     await user.save();
 
-    // Delete the task after completion
-    await Task.findByIdAndDelete(taskId);
+    // Vérifier si tous les membres de la guilde ont complété la tâche
+    const guild = await Guild.findById(task.guildId);
+    if (guild) {
+      const completionsCount = await Completion.countDocuments({ taskId });
+      const membersCount = guild.members.length;
+
+      // Si tous les membres ont complété, supprimer la tâche (elle réapparaîtra le 1er du mois si monthly)
+      if (completionsCount >= membersCount) {
+        // Si c'est une tâche monthly, l'archiver pour la restaurer le 1er du mois
+        if (task.type === 'monthly' && task.originalTaskData) {
+          const archivedTask = new ArchivedTask({
+            originalTaskData: task.originalTaskData,
+            shouldRestore: true
+          });
+          await archivedTask.save();
+        }
+
+        await Task.findByIdAndDelete(taskId);
+        // Supprimer aussi toutes les completions de cette tâche
+        await Completion.deleteMany({ taskId });
+
+        // Broadcast task deletion
+        wss.clients.forEach((client) => {
+          if (client.readyState === WebSocket.OPEN) {
+            client.send(JSON.stringify({
+              type: 'TASK_DELETED_ALL_COMPLETED',
+              data: { taskId, guildId: task.guildId }
+            }));
+          }
+        });
+      }
+    }
 
     // Broadcast completion via WebSocket
     wss.clients.forEach((client) => {
@@ -441,7 +609,7 @@ app.post('/checklist-rpg-groupe/completions', async (req, res) => {
       }
     });
 
-    res.status(201).json({ completion, user, taskDeleted: true });
+    res.status(201).json({ completion, user });
   } catch (error) {
     res.status(400).json({ error: error.message });
   }
@@ -456,7 +624,7 @@ app.get('/checklist-rpg-groupe/completions', async (req, res) => {
 
     const completions = await Completion.find(filter)
       .populate('taskId')
-      .populate('userId')
+      .populate('userId', 'username avatar level')
       .sort({ completedAt: -1 });
     res.json(completions);
   } catch (error) {
