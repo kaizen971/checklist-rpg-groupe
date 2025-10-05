@@ -263,6 +263,53 @@ app.get('/checklist-rpg-groupe/guilds/:id', async (req, res) => {
   }
 });
 
+app.post('/checklist-rpg-groupe/guilds/:id/join', async (req, res) => {
+  try {
+    const { userId } = req.body;
+    const guildId = req.params.id;
+
+    if (!userId) {
+      return res.status(400).json({ error: 'User ID is required' });
+    }
+
+    // Vérifier que la guilde existe
+    const guild = await Guild.findById(guildId);
+    if (!guild) {
+      return res.status(404).json({ error: 'Guild not found' });
+    }
+
+    // Vérifier que l'utilisateur existe
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    // Vérifier si l'utilisateur est déjà dans une guilde
+    if (user.guildId) {
+      return res.status(400).json({ error: 'User is already in a guild' });
+    }
+
+    // Vérifier si l'utilisateur est déjà membre de cette guilde
+    if (guild.members.includes(userId)) {
+      return res.status(400).json({ error: 'User is already a member of this guild' });
+    }
+
+    // Ajouter l'utilisateur à la guilde
+    guild.members.push(userId);
+    await guild.save();
+
+    // Mettre à jour l'utilisateur avec l'ID de la guilde
+    user.guildId = guildId;
+    await user.save();
+
+    // Retourner la guilde mise à jour
+    const updatedGuild = await Guild.findById(guildId).populate('members');
+    res.json(updatedGuild);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // User Routes
 app.get('/checklist-rpg-groupe/users', async (req, res) => {
   try {

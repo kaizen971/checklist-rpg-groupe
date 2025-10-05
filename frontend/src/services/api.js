@@ -116,6 +116,13 @@ class ApiService {
     });
   }
 
+  async joinGuild(guildId, userId) {
+    return this.request(`/guilds/${guildId}/join`, {
+      method: 'POST',
+      body: JSON.stringify({ userId }),
+    });
+  }
+
   // Tasks
   async getTasks(filters = {}) {
     const params = new URLSearchParams(filters).toString();

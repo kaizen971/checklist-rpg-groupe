@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../contexts/ToastContext';
 import { Card, Button, Input } from '../components';
 import { theme } from '../styles/theme';
@@ -8,12 +9,14 @@ import { globalStyles } from '../styles/globalStyles';
 import api from '../services/api';
 
 export const GuildsScreen = ({ navigation }) => {
+  const { user, refreshUser } = useAuth();
   const [guilds, setGuilds] = useState([]);
   const [refreshing, setRefreshing] = useState(false);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [guildName, setGuildName] = useState('');
   const [guildDescription, setGuildDescription] = useState('');
   const [creating, setCreating] = useState(false);
+  const [joiningGuildId, setJoiningGuildId] = useState(null);
   const toast = useToast();
 
   useEffect(() => {
@@ -56,6 +59,25 @@ export const GuildsScreen = ({ navigation }) => {
       toast.error(error.message || 'Failed to create guild');
     } finally {
       setCreating(false);
+    }
+  };
+
+  const handleJoinGuild = async (guildId, guildName) => {
+    if (!user) {
+      toast.error('You must be logged in to join a guild');
+      return;
+    }
+
+    try {
+      setJoiningGuildId(guildId);
+      await api.joinGuild(guildId, user._id);
+      await refreshUser();
+      await loadGuilds();
+      toast.success(`You joined "${guildName}"! Welcome to the party!`);
+    } catch (error) {
+      toast.error(error.message || 'Failed to join guild');
+    } finally {
+      setJoiningGuildId(null);
     }
   };
 
@@ -109,32 +131,63 @@ export const GuildsScreen = ({ navigation }) => {
               <Text style={globalStyles.textMuted}>Be the first to create one!</Text>
             </Card>
           ) : (
-            guilds.map((guild) => (
-              <Card
-                key={guild._id}
-                onPress={() => navigation.navigate('GuildDetail', { guildId: guild._id })}
-              >
-                <View style={globalStyles.rowBetween}>
-                  <View style={styles.guildInfo}>
-                    <Text style={styles.guildName}>{guild.name}</Text>
-                    {guild.description && (
-                      <Text style={globalStyles.textSecondary} numberOfLines={2}>
-                        {guild.description}
-                      </Text>
-                    )}
-                    <View style={styles.guildStats}>
-                      <Text style={styles.memberCount}>
-                        👥 {guild.members?.length || 0} members
-                      </Text>
-                      <Text style={styles.questCount}>
-                        🎯 {guild.quests?.length || 0} quests
-                      </Text>
+            guilds.map((guild) => {
+              const isUserInGuild = user?.guildId?._id === guild._id || user?.guildId === guild._id;
+              const isUserInAnyGuild = user?.guildId !== null && user?.guildId !== undefined;
+
+              return (
+                <Card key={guild._id}>
+                  <View style={globalStyles.rowBetween}>
+                    <View style={styles.guildInfo}>
+                      <Text style={styles.guildName}>{guild.name}</Text>
+                      {guild.description && (
+                        <Text style={globalStyles.textSecondary} numberOfLines={2}>
+                          {guild.description}
+                        </Text>
+                      )}
+                      <View style={styles.guildStats}>
+                        <Text style={styles.memberCount}>
+                          👥 {guild.members?.length || 0} members
+                        </Text>
+                        <Text style={styles.questCount}>
+                          🎯 {guild.quests?.length || 0} quests
+                        </Text>
+                      </View>
                     </View>
                   </View>
-                  <Text style={styles.arrow}>→</Text>
-                </View>
-              </Card>
-            ))
+                  <View style={styles.guildActions}>
+                    {isUserInGuild ? (
+                      <Button
+                        title="View Guild"
+                        onPress={() => navigation.navigate('GuildDetail', { guildId: guild._id })}
+                        variant="primary"
+                        size="small"
+                      />
+                    ) : (
+                      <>
+                        <Button
+                          title="View"
+                          onPress={() => navigation.navigate('GuildDetail', { guildId: guild._id })}
+                          variant="outline"
+                          size="small"
+                          style={styles.actionButton}
+                        />
+                        {!isUserInAnyGuild && (
+                          <Button
+                            title="Join"
+                            onPress={() => handleJoinGuild(guild._id, guild.name)}
+                            variant="success"
+                            size="small"
+                            style={styles.actionButton}
+                            loading={joiningGuildId === guild._id}
+                          />
+                        )}
+                      </>
+                    )}
+                  </View>
+                </Card>
+              );
+            })
           )}
         </View>
       </ScrollView>
@@ -181,5 +234,13 @@ const styles = StyleSheet.create({
     fontSize: theme.fontSize.xl,
     color: theme.colors.primary,
     marginLeft: theme.spacing.sm,
+  },
+  guildActions: {
+    flexDirection: 'row',
+    marginTop: theme.spacing.md,
+  },
+  actionButton: {
+    flex: 1,
+    marginRight: theme.spacing.xs,
   },
 });
