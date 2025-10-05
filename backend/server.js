@@ -428,17 +428,20 @@ app.post('/checklist-rpg-groupe/completions', async (req, res) => {
 
     await user.save();
 
+    // Delete the task after completion
+    await Task.findByIdAndDelete(taskId);
+
     // Broadcast completion via WebSocket
     wss.clients.forEach((client) => {
       if (client.readyState === WebSocket.OPEN) {
         client.send(JSON.stringify({
           type: 'TASK_COMPLETED',
-          data: { completion, user }
+          data: { completion, user, taskId }
         }));
       }
     });
 
-    res.status(201).json({ completion, user });
+    res.status(201).json({ completion, user, taskDeleted: true });
   } catch (error) {
     res.status(400).json({ error: error.message });
   }

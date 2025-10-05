@@ -82,6 +82,9 @@ export const GuildDetailScreen = ({ route }) => {
       const xpGained = result.completion.xpGained;
       const goldGained = result.completion.goldGained;
 
+      // Retirer la tâche de la liste immédiatement
+      setTasks(tasks.filter(t => t._id !== taskId));
+
       // Afficher les récompenses
       toast.taskCompleted(xpGained, goldGained);
 
@@ -93,9 +96,10 @@ export const GuildDetailScreen = ({ route }) => {
       }
 
       await refreshUser();
-      await loadGuildData();
     } catch (error) {
       toast.error(error.message || '❌ Failed to complete quest! You may have already done this.');
+      // Recharger les données en cas d'erreur pour remettre à jour l'état
+      await loadGuildData();
     }
   };
 
