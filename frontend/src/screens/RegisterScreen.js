@@ -47,16 +47,16 @@ export const RegisterScreen = ({ navigation }) => {
 
   const handleRegister = async () => {
     if (!validateForm()) {
-      toast.error('Please fix the errors in the form');
+      toast.error('⚠️ Please fix the errors in the form before creating your hero!');
       return;
     }
 
     try {
       await register(username, email, password);
-      toast.success('Welcome to the adventure! Your hero has been created!');
+      toast.success('🎉 Welcome to the adventure! Your legendary hero has been created!');
       // Navigation is handled by the navigation component when user state changes
     } catch (error) {
-      toast.error(error.message || 'Registration failed. Please try again.');
+      toast.error(error.message || '❌ Registration failed! Please try again, brave one.');
     }
   };
 

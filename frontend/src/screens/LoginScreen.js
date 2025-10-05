@@ -33,16 +33,16 @@ export const LoginScreen = ({ navigation }) => {
 
   const handleLogin = async () => {
     if (!validateForm()) {
-      toast.error('Please check your credentials');
+      toast.error('⚠️ Please check your credentials before proceeding!');
       return;
     }
 
     try {
       await login(email, password);
-      toast.success('Welcome back, adventurer!');
+      toast.success('🎮 Welcome back, brave adventurer! Your quest continues!');
       // Navigation is handled by the navigation component when user state changes
     } catch (error) {
-      toast.error(error.message || 'Login failed. Please try again.');
+      toast.error(error.message || '❌ Login failed! Check your credentials and try again.');
     }
   };
 

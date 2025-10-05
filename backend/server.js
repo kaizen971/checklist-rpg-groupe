@@ -27,12 +27,12 @@ const authenticateToken = (req, res, next) => {
   const token = authHeader && authHeader.split(' ')[1];
 
   if (!token) {
-    return res.status(401).json({ error: 'Access token required' });
+    return res.status(401).json({ error: 'Authentication required. Please log in to continue your quest.' });
   }
 
   jwt.verify(token, JWT_SECRET, (err, user) => {
     if (err) {
-      return res.status(403).json({ error: 'Invalid or expired token' });
+      return res.status(403).json({ error: 'Session expired. Please log in again to continue.' });
     }
     req.user = user;
     next();
@@ -145,13 +145,16 @@ app.post('/checklist-rpg-groupe/auth/register', async (req, res) => {
 
     // Validation
     if (!username || !email || !password) {
-      return res.status(400).json({ error: 'All fields are required' });
+      return res.status(400).json({ error: 'Username, email, and password are required to create your hero!' });
     }
 
     // Check if user already exists
     const existingUser = await User.findOne({ $or: [{ email }, { username }] });
     if (existingUser) {
-      return res.status(400).json({ error: 'User already exists' });
+      if (existingUser.email === email) {
+        return res.status(400).json({ error: 'This email is already registered. Try logging in instead!' });
+      }
+      return res.status(400).json({ error: 'This username is taken. Choose a different hero name!' });
     }
 
     // Hash password
@@ -189,19 +192,19 @@ app.post('/checklist-rpg-groupe/auth/login', async (req, res) => {
 
     // Validation
     if (!email || !password) {
-      return res.status(400).json({ error: 'Email and password are required' });
+      return res.status(400).json({ error: 'Email and password are required to continue your adventure!' });
     }
 
     // Find user
     const user = await User.findOne({ email }).populate('guildId');
     if (!user) {
-      return res.status(401).json({ error: 'Invalid credentials' });
+      return res.status(401).json({ error: 'No hero found with this email. Check your credentials or register!' });
     }
 
     // Check password
     const validPassword = await bcrypt.compare(password, user.password);
     if (!validPassword) {
-      return res.status(401).json({ error: 'Invalid credentials' });
+      return res.status(401).json({ error: 'Incorrect password. Try again, adventurer!' });
     }
 
     // Generate token
@@ -269,29 +272,29 @@ app.post('/checklist-rpg-groupe/guilds/:id/join', async (req, res) => {
     const guildId = req.params.id;
 
     if (!userId) {
-      return res.status(400).json({ error: 'User ID is required' });
+      return res.status(400).json({ error: 'User identification required to join a guild!' });
     }
 
     // Vérifier que la guilde existe
     const guild = await Guild.findById(guildId);
     if (!guild) {
-      return res.status(404).json({ error: 'Guild not found' });
+      return res.status(404).json({ error: 'This guild no longer exists or was disbanded!' });
     }
 
     // Vérifier que l'utilisateur existe
     const user = await User.findById(userId);
     if (!user) {
-      return res.status(404).json({ error: 'User not found' });
+      return res.status(404).json({ error: 'Hero not found! Please log in again.' });
     }
 
     // Vérifier si l'utilisateur est déjà dans une guilde
     if (user.guildId) {
-      return res.status(400).json({ error: 'User is already in a guild' });
+      return res.status(400).json({ error: 'You are already in a guild! Leave your current guild first.' });
     }
 
     // Vérifier si l'utilisateur est déjà membre de cette guilde
     if (guild.members.includes(userId)) {
-      return res.status(400).json({ error: 'User is already a member of this guild' });
+      return res.status(400).json({ error: 'You are already a member of this guild!' });
     }
 
     // Ajouter l'utilisateur à la guilde

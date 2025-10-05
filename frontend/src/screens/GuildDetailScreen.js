@@ -37,7 +37,7 @@ export const GuildDetailScreen = ({ route }) => {
       setTasks(tasksData);
       setQuests(questsData);
     } catch (error) {
-      toast.error('Failed to load guild data. Please try again.');
+      toast.error('⚠️ Failed to load guild data! Check your connection and retry.');
     }
   };
 
@@ -49,7 +49,7 @@ export const GuildDetailScreen = ({ route }) => {
 
   const handleCreateTask = async () => {
     if (!taskTitle.trim()) {
-      toast.error('Task title is required');
+      toast.error('⚠️ Quest title is required to create your challenge!');
       return;
     }
 
@@ -68,9 +68,9 @@ export const GuildDetailScreen = ({ route }) => {
       setShowTaskForm(false);
       setTaskTitle('');
       setTaskDescription('');
-      toast.success(`New ${taskType} quest created: "${newTask.title}"!`);
+      toast.success(`📜 New ${taskType} quest posted: "${newTask.title}"! Glory awaits!`);
     } catch (error) {
-      toast.error(error.message || 'Failed to create task');
+      toast.error(error.message || '❌ Failed to create quest! Please try again.');
     } finally {
       setCreating(false);
     }
@@ -89,20 +89,20 @@ export const GuildDetailScreen = ({ route }) => {
       if (result.user && result.user.level > user.level) {
         setTimeout(() => {
           toast.levelUp(result.user.level);
-        }, 1000);
+        }, 1200);
       }
 
       await refreshUser();
       await loadGuildData();
     } catch (error) {
-      toast.error(error.message || 'Failed to complete task');
+      toast.error(error.message || '❌ Failed to complete quest! You may have already done this.');
     }
   };
 
   const handleDeleteTask = async (taskId) => {
     Alert.alert(
-      'Delete Task',
-      'Are you sure you want to delete this task?',
+      '🗑️ Delete Quest',
+      'Are you sure you want to abandon this quest? This action cannot be undone.',
       [
         { text: 'Cancel', style: 'cancel' },
         {
@@ -112,9 +112,9 @@ export const GuildDetailScreen = ({ route }) => {
             try {
               await api.deleteTask(taskId);
               setTasks(tasks.filter(t => t._id !== taskId));
-              toast.success('Task deleted successfully');
+              toast.success('📋 Quest removed from the board!');
             } catch (error) {
-              toast.error(error.message || 'Failed to delete task');
+              toast.error(error.message || '❌ Failed to delete quest! Try again later.');
             }
           },
         },

@@ -28,7 +28,7 @@ export const GuildsScreen = ({ navigation }) => {
       const data = await api.getGuilds();
       setGuilds(data);
     } catch (error) {
-      toast.error('Failed to load guilds. Please try again.');
+      toast.error('⚠️ Failed to load guilds! Check your connection and try again.');
     }
   };
 
@@ -40,7 +40,7 @@ export const GuildsScreen = ({ navigation }) => {
 
   const handleCreateGuild = async () => {
     if (!guildName.trim()) {
-      toast.error('Guild name is required');
+      toast.error('⚠️ Guild name is required to forge your legend!');
       return;
     }
 
@@ -54,9 +54,9 @@ export const GuildsScreen = ({ navigation }) => {
       setShowCreateForm(false);
       setGuildName('');
       setGuildDescription('');
-      toast.success(`Guild "${newGuild.name}" created! Gather your party!`);
+      toast.success(`🏰 Guild "${newGuild.name}" founded! Now gather your party of heroes!`);
     } catch (error) {
-      toast.error(error.message || 'Failed to create guild');
+      toast.error(error.message || '❌ Failed to create guild! Try a different name.');
     } finally {
       setCreating(false);
     }
@@ -64,7 +64,7 @@ export const GuildsScreen = ({ navigation }) => {
 
   const handleJoinGuild = async (guildId, guildName) => {
     if (!user) {
-      toast.error('You must be logged in to join a guild');
+      toast.error('⚠️ You must be logged in to join a guild!');
       return;
     }
 
@@ -73,9 +73,9 @@ export const GuildsScreen = ({ navigation }) => {
       await api.joinGuild(guildId, user._id);
       await refreshUser();
       await loadGuilds();
-      toast.success(`You joined "${guildName}"! Welcome to the party!`);
+      toast.success(`🎊 You joined "${guildName}"! Your party awaits, hero!`);
     } catch (error) {
-      toast.error(error.message || 'Failed to join guild');
+      toast.error(error.message || '❌ Failed to join guild! You may already be in one.');
     } finally {
       setJoiningGuildId(null);
     }
