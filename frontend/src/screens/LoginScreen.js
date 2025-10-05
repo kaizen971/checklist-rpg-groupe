@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../contexts/ToastContext';
 import { Input, Button } from '../components';
@@ -54,7 +55,7 @@ export const LoginScreen = ({ navigation }) => {
       >
         <ScrollView contentContainerStyle={styles.scrollContent}>
           <View style={styles.header}>
-            <Text style={styles.emoji}>⚔️</Text>
+            <Ionicons name="sword" size={64} color={theme.colors.primary} style={styles.icon} />
             <Text style={globalStyles.title}>Checklist RPG</Text>
             <Text style={styles.subtitle}>Welcome back, adventurer!</Text>
           </View>
@@ -113,8 +114,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: theme.spacing.xl,
   },
-  emoji: {
-    fontSize: 64,
+  icon: {
     marginBottom: theme.spacing.md,
   },
   subtitle: {

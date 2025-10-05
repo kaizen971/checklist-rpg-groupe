@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, RefreshControl, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../contexts/ToastContext';
 import { Avatar, Card, StatBadge, ProgressBar } from '../components';
@@ -60,15 +61,18 @@ export const HomeScreen = ({ navigation }) => {
                 <Text style={styles.username}>{user?.username}</Text>
                 <Text style={styles.role}>{user?.role || 'Adventurer'}</Text>
                 {user?.guildId && (
-                  <Text style={styles.guild}>⚔️ {user.guildId.name}</Text>
+                  <View style={styles.guildRow}>
+                    <Ionicons name="shield" size={16} color={theme.colors.accent} />
+                    <Text style={styles.guild}> {user.guildId.name}</Text>
+                  </View>
                 )}
               </View>
             </View>
 
             <View style={styles.statsRow}>
-              <StatBadge icon="⭐" value={user?.level || 1} label="Level" color={theme.colors.level} />
-              <StatBadge icon="✨" value={user?.xp || 0} label="XP" color={theme.colors.xp} />
-              <StatBadge icon="💰" value={user?.gold || 0} label="Gold" color={theme.colors.gold} />
+              <StatBadge icon="star" value={user?.level || 1} label="Level" color={theme.colors.level} />
+              <StatBadge icon="sparkles" value={user?.xp || 0} label="XP" color={theme.colors.xp} />
+              <StatBadge icon="wallet" value={user?.gold || 0} label="Gold" color={theme.colors.gold} />
             </View>
 
             <View style={styles.progressSection}>
@@ -112,7 +116,7 @@ export const HomeScreen = ({ navigation }) => {
                     {user.guildId.members?.length || 0} members
                   </Text>
                 </View>
-                <Text style={styles.arrow}>→</Text>
+                <Ionicons name="chevron-forward" size={24} color={theme.colors.primary} />
               </View>
             </Card>
           ) : (
@@ -121,7 +125,10 @@ export const HomeScreen = ({ navigation }) => {
               <Text style={globalStyles.textSecondary}>
                 Team up with other adventurers to complete quests together
               </Text>
-              <Text style={styles.joinButton}>Browse Guilds →</Text>
+              <View style={styles.joinButtonRow}>
+                <Text style={styles.joinButton}>Browse Guilds</Text>
+                <Ionicons name="chevron-forward" size={20} color={theme.colors.primary} />
+              </View>
             </Card>
           )}
 
@@ -131,7 +138,10 @@ export const HomeScreen = ({ navigation }) => {
               <View style={globalStyles.rowBetween}>
                 <Text style={globalStyles.subtitle}>Recent Tasks</Text>
                 <TouchableOpacity onPress={() => navigation.navigate('Tasks')}>
-                  <Text style={styles.seeAll}>See All →</Text>
+                  <View style={styles.seeAllRow}>
+                    <Text style={styles.seeAll}>See All</Text>
+                    <Ionicons name="chevron-forward" size={16} color={theme.colors.primary} />
+                  </View>
                 </TouchableOpacity>
               </View>
               {tasks.map((task) => (
@@ -139,8 +149,14 @@ export const HomeScreen = ({ navigation }) => {
                   <Text style={styles.taskTitle}>{task.title}</Text>
                   <View style={styles.taskFooter}>
                     <View style={globalStyles.row}>
-                      <Text style={styles.reward}>✨ {task.xpReward} XP</Text>
-                      <Text style={styles.reward}>💰 {task.goldReward} Gold</Text>
+                      <View style={styles.rewardRow}>
+                        <Ionicons name="sparkles" size={14} color={theme.colors.textSecondary} />
+                        <Text style={styles.reward}> {task.xpReward} XP</Text>
+                      </View>
+                      <View style={styles.rewardRow}>
+                        <Ionicons name="wallet" size={14} color={theme.colors.textSecondary} />
+                        <Text style={styles.reward}> {task.goldReward} Gold</Text>
+                      </View>
                     </View>
                     <View style={[styles.typeBadge, styles[`${task.type}Badge`]]}>
                       <Text style={styles.typeText}>{task.type}</Text>
@@ -182,10 +198,14 @@ const styles = StyleSheet.create({
     color: theme.colors.textSecondary,
     marginTop: theme.spacing.xs,
   },
+  guildRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: theme.spacing.xs,
+  },
   guild: {
     fontSize: theme.fontSize.sm,
     color: theme.colors.accent,
-    marginTop: theme.spacing.xs,
   },
   statsRow: {
     flexDirection: 'row',
@@ -219,20 +239,29 @@ const styles = StyleSheet.create({
     color: theme.colors.textSecondary,
     marginTop: theme.spacing.xs,
   },
-  arrow: {
-    fontSize: theme.fontSize.xl,
-    color: theme.colors.primary,
+  joinButtonRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: theme.spacing.sm,
   },
   joinButton: {
     fontSize: theme.fontSize.md,
     color: theme.colors.primary,
     fontWeight: theme.fontWeight.semibold,
-    marginTop: theme.spacing.sm,
+  },
+  seeAllRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   seeAll: {
     fontSize: theme.fontSize.sm,
     color: theme.colors.primary,
     fontWeight: theme.fontWeight.semibold,
+  },
+  rewardRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginRight: theme.spacing.md,
   },
   taskCard: {
     marginTop: theme.spacing.sm,

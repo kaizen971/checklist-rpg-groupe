@@ -1,12 +1,13 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { theme } from '../styles/theme';
 
 export const StatBadge = ({ icon, value, label, color }) => {
   return (
     <View style={styles.container}>
       <View style={[styles.iconContainer, { backgroundColor: color }]}>
-        <Text style={styles.icon}>{icon}</Text>
+        <Ionicons name={icon} size={20} color="#FFFFFF" />
       </View>
       <View style={styles.content}>
         <Text style={styles.value}>{value}</Text>
@@ -33,9 +34,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: theme.spacing.sm,
-  },
-  icon: {
-    fontSize: 18,
   },
   content: {
     justifyContent: 'center',

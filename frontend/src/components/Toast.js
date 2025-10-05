@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, Animated, TouchableOpacity } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { theme } from '../styles/theme';
 
 export const Toast = ({ message, type = 'info', duration = 3000, onClose }) => {
@@ -84,22 +85,22 @@ export const Toast = ({ message, type = 'info', duration = 3000, onClose }) => {
     });
   };
 
-  const getIcon = () => {
+  const getIconName = () => {
     switch (type) {
       case 'success':
-        return '✅';
+        return 'checkmark-circle';
       case 'error':
-        return '❌';
+        return 'close-circle';
       case 'warning':
-        return '⚠️';
+        return 'warning';
       case 'xp':
-        return '✨';
+        return 'sparkles';
       case 'gold':
-        return '💰';
+        return 'wallet';
       case 'level':
-        return '⭐';
+        return 'star';
       default:
-        return 'ℹ️';
+        return 'information-circle';
     }
   };
 
@@ -149,7 +150,7 @@ export const Toast = ({ message, type = 'info', duration = 3000, onClose }) => {
             },
           ]}
         />
-        <Text style={styles.icon}>{getIcon()}</Text>
+        <Ionicons name={getIconName()} size={28} color="#FFFFFF" style={styles.icon} />
         <Text style={styles.message}>{message}</Text>
       </TouchableOpacity>
     </Animated.View>
@@ -189,11 +190,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255, 255, 255, 0.2)',
   },
   icon: {
-    fontSize: 28,
     marginRight: theme.spacing.sm,
-    textShadowColor: 'rgba(0, 0, 0, 0.3)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 3,
   },
   message: {
     flex: 1,

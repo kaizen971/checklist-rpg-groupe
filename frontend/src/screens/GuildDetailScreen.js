@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, RefreshControl, Alert, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../contexts/ToastContext';
 import { Card, Button, Avatar, Input } from '../components';
@@ -37,7 +38,7 @@ export const GuildDetailScreen = ({ route }) => {
       setTasks(tasksData);
       setQuests(questsData);
     } catch (error) {
-      toast.error('⚠️ Failed to load guild data! Check your connection and retry.');
+      toast.error('Failed to load guild data! Check your connection and retry.');
     }
   };
 
@@ -49,7 +50,7 @@ export const GuildDetailScreen = ({ route }) => {
 
   const handleCreateTask = async () => {
     if (!taskTitle.trim()) {
-      toast.error('⚠️ Quest title is required to create your challenge!');
+      toast.error('Quest title is required to create your challenge!');
       return;
     }
 
@@ -68,9 +69,9 @@ export const GuildDetailScreen = ({ route }) => {
       setShowTaskForm(false);
       setTaskTitle('');
       setTaskDescription('');
-      toast.success(`📜 New ${taskType} quest posted: "${newTask.title}"! Glory awaits!`);
+      toast.success(`New ${taskType} quest posted: "${newTask.title}"! Glory awaits!`);
     } catch (error) {
-      toast.error(error.message || '❌ Failed to create quest! Please try again.');
+      toast.error(error.message || 'Failed to create quest! Please try again.');
     } finally {
       setCreating(false);
     }
@@ -97,7 +98,7 @@ export const GuildDetailScreen = ({ route }) => {
 
       await refreshUser();
     } catch (error) {
-      toast.error(error.message || '❌ Failed to complete quest! You may have already done this.');
+      toast.error(error.message || 'Failed to complete quest! You may have already done this.');
       // Recharger les données en cas d'erreur pour remettre à jour l'état
       await loadGuildData();
     }
@@ -105,7 +106,7 @@ export const GuildDetailScreen = ({ route }) => {
 
   const handleDeleteTask = async (taskId) => {
     Alert.alert(
-      '🗑️ Delete Quest',
+      'Delete Quest',
       'Are you sure you want to abandon this quest? This action cannot be undone.',
       [
         { text: 'Cancel', style: 'cancel' },
@@ -116,9 +117,9 @@ export const GuildDetailScreen = ({ route }) => {
             try {
               await api.deleteTask(taskId);
               setTasks(tasks.filter(t => t._id !== taskId));
-              toast.success('📋 Quest removed from the board!');
+              toast.success('Quest removed from the board!');
             } catch (error) {
-              toast.error(error.message || '❌ Failed to delete quest! Try again later.');
+              toast.error(error.message || 'Failed to delete quest! Try again later.');
             }
           },
         },
@@ -152,9 +153,18 @@ export const GuildDetailScreen = ({ route }) => {
               <Text style={globalStyles.textSecondary}>{guild.description}</Text>
             )}
             <View style={styles.stats}>
-              <Text style={styles.stat}>👥 {guild.members?.length || 0} Members</Text>
-              <Text style={styles.stat}>🎯 {quests.length} Quests</Text>
-              <Text style={styles.stat}>✅ {tasks.length} Tasks</Text>
+              <View style={styles.statRow}>
+                <Ionicons name="people" size={16} color={theme.colors.textSecondary} />
+                <Text style={styles.stat}> {guild.members?.length || 0} Members</Text>
+              </View>
+              <View style={styles.statRow}>
+                <Ionicons name="trophy" size={16} color={theme.colors.textSecondary} />
+                <Text style={styles.stat}> {quests.length} Quests</Text>
+              </View>
+              <View style={styles.statRow}>
+                <Ionicons name="checkbox" size={16} color={theme.colors.textSecondary} />
+                <Text style={styles.stat}> {tasks.length} Tasks</Text>
+              </View>
             </View>
           </Card>
 
@@ -243,8 +253,14 @@ export const GuildDetailScreen = ({ route }) => {
                     )}
                     <View style={styles.taskFooter}>
                       <View style={globalStyles.row}>
-                        <Text style={styles.reward}>✨ {task.xpReward} XP</Text>
-                        <Text style={styles.reward}>💰 {task.goldReward} Gold</Text>
+                        <View style={styles.rewardRow}>
+                          <Ionicons name="sparkles" size={14} color={theme.colors.textSecondary} />
+                          <Text style={styles.reward}> {task.xpReward} XP</Text>
+                        </View>
+                        <View style={styles.rewardRow}>
+                          <Ionicons name="wallet" size={14} color={theme.colors.textSecondary} />
+                          <Text style={styles.reward}> {task.goldReward} Gold</Text>
+                        </View>
                       </View>
                       <View style={[styles.typeBadge, styles[`${task.type}Badge`]]}>
                         <Text style={styles.typeText}>{task.type}</Text>
@@ -296,8 +312,14 @@ export const GuildDetailScreen = ({ route }) => {
                     </View>
                   </View>
                   <View style={globalStyles.row}>
-                    <Text style={styles.reward}>✨ {quest.rewards?.xp} XP</Text>
-                    <Text style={styles.reward}>💰 {quest.rewards?.gold} Gold</Text>
+                    <View style={styles.rewardRow}>
+                      <Ionicons name="sparkles" size={14} color={theme.colors.textSecondary} />
+                      <Text style={styles.reward}> {quest.rewards?.xp} XP</Text>
+                    </View>
+                    <View style={styles.rewardRow}>
+                      <Ionicons name="wallet" size={14} color={theme.colors.textSecondary} />
+                      <Text style={styles.reward}> {quest.rewards?.gold} Gold</Text>
+                    </View>
                   </View>
                 </Card>
               ))}
@@ -323,10 +345,19 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     marginTop: theme.spacing.md,
   },
+  statRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginRight: theme.spacing.lg,
+  },
   stat: {
     fontSize: theme.fontSize.sm,
     color: theme.colors.textSecondary,
-    marginRight: theme.spacing.lg,
+  },
+  rewardRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginRight: theme.spacing.md,
   },
   membersGrid: {
     flexDirection: 'row',

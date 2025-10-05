@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../contexts/ToastContext';
 import { Card, Button, Input } from '../components';
@@ -28,7 +29,7 @@ export const GuildsScreen = ({ navigation }) => {
       const data = await api.getGuilds();
       setGuilds(data);
     } catch (error) {
-      toast.error('⚠️ Failed to load guilds! Check your connection and try again.');
+      toast.error('Failed to load guilds! Check your connection and try again.');
     }
   };
 
@@ -40,7 +41,7 @@ export const GuildsScreen = ({ navigation }) => {
 
   const handleCreateGuild = async () => {
     if (!guildName.trim()) {
-      toast.error('⚠️ Guild name is required to forge your legend!');
+      toast.error('Guild name is required to forge your legend!');
       return;
     }
 
@@ -54,9 +55,9 @@ export const GuildsScreen = ({ navigation }) => {
       setShowCreateForm(false);
       setGuildName('');
       setGuildDescription('');
-      toast.success(`🏰 Guild "${newGuild.name}" founded! Now gather your party of heroes!`);
+      toast.success(`Guild "${newGuild.name}" founded! Now gather your party of heroes!`);
     } catch (error) {
-      toast.error(error.message || '❌ Failed to create guild! Try a different name.');
+      toast.error(error.message || 'Failed to create guild! Try a different name.');
     } finally {
       setCreating(false);
     }
@@ -64,7 +65,7 @@ export const GuildsScreen = ({ navigation }) => {
 
   const handleJoinGuild = async (guildId, guildName) => {
     if (!user) {
-      toast.error('⚠️ You must be logged in to join a guild!');
+      toast.error('You must be logged in to join a guild!');
       return;
     }
 
@@ -73,9 +74,9 @@ export const GuildsScreen = ({ navigation }) => {
       await api.joinGuild(guildId, user._id);
       await refreshUser();
       await loadGuilds();
-      toast.success(`🎊 You joined "${guildName}"! Your party awaits, hero!`);
+      toast.success(`You joined "${guildName}"! Your party awaits, hero!`);
     } catch (error) {
-      toast.error(error.message || '❌ Failed to join guild! You may already be in one.');
+      toast.error(error.message || 'Failed to join guild! You may already be in one.');
     } finally {
       setJoiningGuildId(null);
     }
@@ -146,12 +147,18 @@ export const GuildsScreen = ({ navigation }) => {
                         </Text>
                       )}
                       <View style={styles.guildStats}>
-                        <Text style={styles.memberCount}>
-                          👥 {guild.members?.length || 0} members
-                        </Text>
-                        <Text style={styles.questCount}>
-                          🎯 {guild.quests?.length || 0} quests
-                        </Text>
+                        <View style={styles.statItem}>
+                          <Ionicons name="people" size={16} color={theme.colors.textSecondary} />
+                          <Text style={styles.memberCount}>
+                            {' '}{guild.members?.length || 0} members
+                          </Text>
+                        </View>
+                        <View style={styles.statItem}>
+                          <Ionicons name="trophy" size={16} color={theme.colors.textSecondary} />
+                          <Text style={styles.questCount}>
+                            {' '}{guild.quests?.length || 0} quests
+                          </Text>
+                        </View>
                       </View>
                     </View>
                   </View>
@@ -221,10 +228,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     marginTop: theme.spacing.sm,
   },
+  statItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginRight: theme.spacing.md,
+  },
   memberCount: {
     fontSize: theme.fontSize.sm,
     color: theme.colors.textSecondary,
-    marginRight: theme.spacing.md,
   },
   questCount: {
     fontSize: theme.fontSize.sm,

@@ -1,14 +1,15 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, StyleSheet } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { theme } from '../styles/theme';
 
 const AVATAR_STYLES = {
-  default: { emoji: '⚔️', color: theme.colors.primary },
-  warrior: { emoji: '🗡️', color: '#E74C3C' },
-  mage: { emoji: '🔮', color: '#9B59B6' },
-  archer: { emoji: '🏹', color: '#27AE60' },
-  healer: { emoji: '✨', color: '#3498DB' },
-  rogue: { emoji: '🗡️', color: '#34495E' },
+  default: { icon: 'sword', color: theme.colors.primary },
+  warrior: { icon: 'shield', color: '#E74C3C' },
+  mage: { icon: 'flash', color: '#9B59B6' },
+  archer: { icon: 'arrow-forward', color: '#27AE60' },
+  healer: { icon: 'medkit', color: '#3498DB' },
+  rogue: { icon: 'eye', color: '#34495E' },
 };
 
 export const Avatar = ({ type = 'default', size = 60, level }) => {
@@ -16,10 +17,10 @@ export const Avatar = ({ type = 'default', size = 60, level }) => {
 
   return (
     <View style={[styles.container, { width: size, height: size, backgroundColor: avatarStyle.color }]}>
-      <Text style={[styles.emoji, { fontSize: size * 0.5 }]}>{avatarStyle.emoji}</Text>
+      <Ionicons name={avatarStyle.icon} size={size * 0.5} color="#FFFFFF" />
       {level && (
         <View style={styles.levelBadge}>
-          <Text style={styles.levelText}>{level}</Text>
+          <Ionicons name="star" size={12} color={theme.colors.background} />
         </View>
       )}
     </View>
@@ -33,9 +34,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     ...theme.shadows.md,
   },
-  emoji: {
-    textAlign: 'center',
-  },
   levelBadge: {
     position: 'absolute',
     bottom: -4,
@@ -48,10 +46,5 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderWidth: 2,
     borderColor: theme.colors.background,
-  },
-  levelText: {
-    fontSize: theme.fontSize.xs,
-    fontWeight: theme.fontWeight.bold,
-    color: theme.colors.background,
   },
 });

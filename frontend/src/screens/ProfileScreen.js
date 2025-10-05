@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../contexts/AuthContext';
 import { Avatar, Card, Button, ProgressBar } from '../components';
 import { theme } from '../styles/theme';
@@ -34,7 +35,10 @@ export const ProfileScreen = ({ navigation }) => {
             <Text style={styles.username}>{user?.username}</Text>
             <Text style={styles.email}>{user?.email}</Text>
             {user?.guildId && (
-              <Text style={styles.guild}>⚔️ {user.guildId.name}</Text>
+              <View style={styles.guildRow}>
+                <Ionicons name="shield" size={18} color={theme.colors.accent} />
+                <Text style={styles.guild}> {user.guildId.name}</Text>
+              </View>
             )}
           </Card>
 
@@ -58,7 +62,10 @@ export const ProfileScreen = ({ navigation }) => {
 
             <View style={styles.statRow}>
               <Text style={styles.statLabel}>Gold</Text>
-              <Text style={styles.statValue}>💰 {user?.gold || 0}</Text>
+              <View style={styles.goldRow}>
+                <Ionicons name="wallet" size={18} color={theme.colors.gold} />
+                <Text style={styles.statValue}> {user?.gold || 0}</Text>
+              </View>
             </View>
 
             <View style={styles.statRow}>
@@ -167,11 +174,19 @@ const styles = StyleSheet.create({
     color: theme.colors.textSecondary,
     marginBottom: theme.spacing.xs,
   },
+  guildRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: theme.spacing.sm,
+  },
   guild: {
     fontSize: theme.fontSize.md,
     color: theme.colors.accent,
     fontWeight: theme.fontWeight.semibold,
-    marginTop: theme.spacing.sm,
+  },
+  goldRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   statRow: {
     flexDirection: 'row',

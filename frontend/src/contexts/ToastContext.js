@@ -41,19 +41,19 @@ export const ToastProvider = ({ children }) => {
   }, [showToast]);
 
   const xpGained = useCallback((xp, duration) => {
-    showToast(`⚡ +${xp} XP Earned! Power grows!`, 'xp', duration);
+    showToast(`+${xp} XP Earned! Power grows!`, 'xp', duration);
   }, [showToast]);
 
   const goldGained = useCallback((gold, duration) => {
-    showToast(`💎 +${gold} Gold Collected! Treasure secured!`, 'gold', duration);
+    showToast(`+${gold} Gold Collected! Treasure secured!`, 'gold', duration);
   }, [showToast]);
 
   const levelUp = useCallback((level, duration) => {
-    showToast(`🎉 LEVEL UP! Now level ${level}! New powers unlocked!`, 'level', duration || 5000);
+    showToast(`LEVEL UP! Now level ${level}! New powers unlocked!`, 'level', duration || 5000);
   }, [showToast]);
 
   const taskCompleted = useCallback((xp, gold, duration) => {
-    showToast(`⚔️ Quest Complete! +${xp} XP, +${gold} Gold earned!`, 'success', duration);
+    showToast(`Quest Complete! +${xp} XP, +${gold} Gold earned!`, 'success', duration);
   }, [showToast]);
 
   const value = {
