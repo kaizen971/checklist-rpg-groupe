@@ -27,7 +27,7 @@ export const GuildsScreen = ({ navigation }) => {
   const loadGuilds = async () => {
     try {
       const data = await api.getGuilds();
-      setGuilds(data);
+      setGuilds(data || []);
     } catch (error) {
       toast.error('Failed to load guilds! Check your connection and try again.');
     }

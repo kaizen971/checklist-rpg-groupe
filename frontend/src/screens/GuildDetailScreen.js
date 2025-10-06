@@ -35,8 +35,8 @@ export const GuildDetailScreen = ({ route }) => {
         api.getQuests({ guildId }),
       ]);
       setGuild(guildData);
-      setTasks(tasksData);
-      setQuests(questsData);
+      setTasks(tasksData || []);
+      setQuests(questsData || []);
     } catch (error) {
       toast.error('Failed to load guild data! Check your connection and retry.');
     }

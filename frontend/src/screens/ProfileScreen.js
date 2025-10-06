@@ -134,7 +134,7 @@ export const ProfileScreen = ({ navigation }) => {
             <View style={styles.infoRow}>
               <Text style={styles.infoLabel}>Member since</Text>
               <Text style={styles.infoValue}>
-                {new Date(user?.createdAt).toLocaleDateString()}
+                {user?.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A'}
               </Text>
             </View>
           </Card>

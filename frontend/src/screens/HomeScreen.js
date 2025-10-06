@@ -22,9 +22,9 @@ export const HomeScreen = ({ navigation }) => {
 
   const loadData = async () => {
     try {
-      if (user?.guildId) {
+      if (user?.guildId?._id) {
         const tasksData = await api.getTasks({ guildId: user.guildId._id });
-        setTasks(tasksData.slice(0, 5)); // Show only 5 recent tasks
+        setTasks((tasksData || []).slice(0, 5)); // Show only 5 recent tasks
       }
       if (user?._id) {
         const statsData = await api.getUserStats(user._id);
