@@ -4,3 +4,4 @@ export { HomeScreen } from './HomeScreen';
 export { ProfileScreen } from './ProfileScreen';
 export { GuildsScreen } from './GuildsScreen';
 export { GuildDetailScreen } from './GuildDetailScreen';
+export { SettingsScreen } from './SettingsScreen';

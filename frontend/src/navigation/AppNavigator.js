@@ -13,6 +13,7 @@ import {
   ProfileScreen,
   GuildsScreen,
   GuildDetailScreen,
+  SettingsScreen,
 } from '../screens';
 
 const Stack = createStackNavigator();
@@ -67,6 +68,16 @@ const TabNavigator = () => {
           tabBarLabel: 'Profile',
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="person" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tab.Screen
+        name="Settings"
+        component={SettingsScreen}
+        options={{
+          tabBarLabel: 'Settings',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="settings" size={size} color={color} />
           ),
         }}
       />

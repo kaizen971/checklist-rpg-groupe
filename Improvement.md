@@ -198,4 +198,160 @@ completionProgress: Texte de progression (style primary)
 
 ---
 
+## 🎨 Amélioration : Ajout d'un écran Paramètres
+
+**Date :** 2025-10-06
+**Status :** ✅ Implémenté
+
+### Description
+Ajout d'un nouvel écran de paramètres accessible depuis la barre de navigation principale, permettant aux utilisateurs de gérer leur compte, leurs préférences et d'accéder aux informations de l'application.
+
+### Changements Frontend
+
+#### 1. Nouveau fichier `frontend/src/screens/SettingsScreen.js`
+
+**Structure de l'écran :**
+- Interface organisée en sections thématiques avec des Cards
+- Utilisation cohérente des composants existants (Card, SafeAreaView)
+- Design conforme au thème de l'application (RPG-styled)
+
+**Sections implémentées :**
+
+##### Account Section
+- **Edit Profile** : Bouton pour éditer le profil (à implémenter)
+- **Email** : Affichage de l'email de l'utilisateur
+- **Change Password** : Option pour changer le mot de passe (à implémenter)
+
+##### Preferences Section
+- **Notifications** : Toggle pour activer/désactiver les notifications
+- **Dark Mode** : Toggle pour le mode sombre (à implémenter)
+- **Sound Effects** : Toggle pour les effets sonores (à implémenter)
+
+##### App Info Section
+- **About** : Affiche la version de l'app et une description
+- **Terms & Conditions** : Lien vers les conditions d'utilisation (à implémenter)
+- **Privacy Policy** : Lien vers la politique de confidentialité (à implémenter)
+
+##### Danger Zone
+- **Logout** : Déconnexion avec confirmation
+- **Delete Account** : Suppression de compte avec double confirmation (à implémenter)
+
+**Composants internes :**
+
+```javascript
+SettingItem : Ligne de paramètre cliquable avec icône, titre et chevron
+SettingSwitch : Ligne de paramètre avec icône, titre et switch toggle
+```
+
+**Fonctionnalités implémentées :**
+- ✅ Gestion des états locaux pour les toggles (notifications, darkMode, soundEffects)
+- ✅ Alertes de confirmation pour les actions sensibles (logout, delete account)
+- ✅ Affichage de l'email de l'utilisateur depuis le contexte Auth
+- ✅ Fonction de déconnexion intégrée avec le système d'authentification
+- ✅ Séparateurs visuels entre les items
+- ✅ Styles adaptés au thème existant avec icônes Ionicons
+
+#### 2. Intégration dans la navigation (`frontend/src/navigation/AppNavigator.js`)
+
+**Modifications :**
+- Ajout de l'import `SettingsScreen`
+- Nouvel onglet "Settings" dans le `TabNavigator`
+- Icône : `settings` (Ionicons)
+- Position : Quatrième onglet après Profile
+
+**Navigation tabs :**
+1. Home (icône: home)
+2. Guilds (icône: shield)
+3. Profile (icône: person)
+4. **Settings** (icône: settings) ← NOUVEAU
+
+#### 3. Export du composant (`frontend/src/screens/index.js`)
+
+Ajout de l'export :
+```javascript
+export { SettingsScreen } from './SettingsScreen';
+```
+
+### Fonctionnalités Clés
+
+✅ **Interface cohérente** : Design aligné avec les autres écrans (même thème, composants, styles)
+✅ **Organisation claire** : Sections logiques avec titres et séparateurs
+✅ **Actions sécurisées** : Confirmations pour logout et delete account
+✅ **Extensible** : Structure modulaire facilitant l'ajout de nouveaux paramètres
+✅ **Responsive** : ScrollView pour s'adapter à tous les écrans
+✅ **Safe Area** : Utilisation de SafeAreaView pour compatibilité iOS
+
+### Architecture Technique
+
+```
+TabNavigator
+├── Home
+├── Guilds
+├── Profile
+└── Settings (NEW)
+    ├── Account Section
+    │   ├── Edit Profile
+    │   ├── Email Display
+    │   └── Change Password
+    ├── Preferences Section
+    │   ├── Notifications Toggle
+    │   ├── Dark Mode Toggle
+    │   └── Sound Effects Toggle
+    ├── App Info Section
+    │   ├── About
+    │   ├── Terms & Conditions
+    │   └── Privacy Policy
+    └── Danger Zone
+        ├── Logout
+        └── Delete Account
+```
+
+### Interface Utilisateur
+
+**Composants réutilisables :**
+- `<Card>` : Conteneur de section avec style elevated
+- `<Ionicons>` : Icônes vectorielles pour chaque option
+- `<Switch>` : Toggle natif React Native stylisé au thème
+- `<TouchableOpacity>` : Actions cliquables
+
+**Styles personnalisés :**
+- `dangerTitle` : Titre rouge pour la Danger Zone
+- `dangerText` : Texte rouge pour les actions destructives
+- `settingItem` : Ligne flexible avec espacement cohérent
+- `divider` : Séparateur visuel entre items
+
+### Tests Manuels Effectués
+
+✅ **Navigation** : L'écran Settings apparaît dans les tabs et est accessible
+✅ **Layout** : Toutes les sections s'affichent correctement
+✅ **Toggles** : Les switches répondent aux interactions
+✅ **Logout** : La déconnexion fonctionne avec confirmation
+✅ **SafeArea** : Pas de chevauchement avec les zones système
+
+### Améliorations Futures Possibles
+
+- 🔧 **Persistance des préférences** : Sauvegarder les toggles dans AsyncStorage
+- 🎨 **Dark Mode complet** : Implémenter le thème sombre dans toute l'app
+- 🔔 **Gestion des notifications** : Intégrer avec expo-notifications
+- 🔐 **Change Password** : Formulaire de changement de mot de passe
+- 👤 **Edit Profile** : Écran d'édition avec avatar, username, etc.
+- 🗑️ **Delete Account** : API endpoint et logique de suppression
+- 📄 **Legal Pages** : Créer les pages Terms & Privacy Policy
+- 🌐 **Multilangue** : Sélecteur de langue dans les préférences
+- 🔊 **Sound Manager** : Système de sons pour les actions dans l'app
+- 📊 **Analytics Toggle** : Option pour opt-out du tracking
+
+### Notes Techniques
+
+**État local vs persistant :** Actuellement, les toggles utilisent `useState` et se réinitialisent à chaque montage du composant. Pour une vraie application, utiliser AsyncStorage ou le backend pour persister les préférences.
+
+**Sécurité :** La fonction de suppression de compte nécessite une implémentation backend sécurisée avec :
+- Re-authentification avant suppression
+- Période de grâce de 30 jours
+- Suppression en cascade des données liées (completions, memberships, etc.)
+
+**UX :** Les items "Coming Soon" utilisent des alertes temporaires. Dans une version finale, soit les implémenter complètement, soit les masquer jusqu'à l'implémentation.
+
+---
+
 *Dernière mise à jour : 2025-10-06*
