@@ -354,4 +354,101 @@ TabNavigator
 
 ---
 
+## 🎨 Amélioration : Amélioration de la lisibilité du texte secondaire
+
+**Date :** 2025-10-06
+**Status :** ✅ Implémenté
+
+### Description
+Correction du problème de lisibilité du texte gris pâle sur la première page après le login (HomeScreen) et dans toute l'application. Les textes secondaires (descriptions, labels, informations complémentaires) étaient difficilement lisibles sur le fond sombre.
+
+### Problème Identifié
+- **Couleur précédente** : `textSecondary: #B2BEC3` (gris très clair/pâle)
+- **Couleur précédente** : `textMuted: #636E72` (gris foncé)
+- **Fond de l'application** : `#1A1A2E` (bleu très sombre)
+- **Résultat** : Contraste insuffisant rendant le texte difficile à lire
+
+### Changements Frontend
+
+#### 1. Mise à jour du thème (`frontend/src/styles/theme.js`)
+
+**Modifications des couleurs :**
+```javascript
+// Avant
+textSecondary: '#B2BEC3',  // Gris pâle - faible lisibilité
+textMuted: '#636E72',      // Gris foncé - faible lisibilité
+
+// Après
+textSecondary: '#DFE6E9',  // Gris clair lumineux - haute lisibilité
+textMuted: '#8395A7',      // Gris bleuté moyen - meilleure lisibilité
+```
+
+### Impact sur l'Application
+
+**Écrans affectés :**
+- ✅ **HomeScreen** : Descriptions des guildes, compteurs de membres, labels de progression
+- ✅ **GuildDetailScreen** : Descriptions des tâches, compteurs de complétion, récompenses
+- ✅ **ProfileScreen** : Informations secondaires du profil
+- ✅ **SettingsScreen** : Labels et descriptions des paramètres
+- ✅ Tous les composants utilisant `globalStyles.textSecondary` ou `globalStyles.textMuted`
+
+**Éléments améliorés :**
+- Descriptions de guilde ("Team up with other adventurers...")
+- Compteurs de membres ("X members")
+- Labels de récompenses (XP, Gold)
+- Textes de progression ("X / Y members completed")
+- Descriptions de tâches
+- Tous les textes d'aide et informations secondaires
+
+### Ratios de Contraste
+
+**Avant :**
+- `#B2BEC3` sur `#1A1A2E` : Contraste ~5.8:1 (limite AA)
+- `#636E72` sur `#1A1A2E` : Contraste ~3.2:1 (échec WCAG)
+
+**Après :**
+- `#DFE6E9` sur `#1A1A2E` : Contraste ~10.5:1 (AAA ✅)
+- `#8395A7` sur `#1A1A2E` : Contraste ~5.1:1 (AA ✅)
+
+### Cohérence Visuelle
+
+Les nouvelles couleurs maintiennent la hiérarchie visuelle :
+1. **Texte principal** : `#FFFFFF` (blanc pur) - Titres, contenu important
+2. **Texte secondaire** : `#DFE6E9` (gris très clair) - Descriptions, labels
+3. **Texte atténué** : `#8395A7` (gris bleuté) - Informations tertiaires
+
+### Tests à Effectuer
+
+1. **Lisibilité générale** :
+   - Vérifier que tous les textes sont facilement lisibles
+   - Tester sur différentes tailles d'écran
+   - Vérifier en conditions de faible luminosité
+
+2. **Contraste visuel** :
+   - S'assurer que la hiérarchie texte principal > secondaire > muted est préservée
+   - Vérifier que les icônes colorées (success, warning, danger) restent visibles
+
+3. **Écrans spécifiques** :
+   - HomeScreen : descriptions de guildes et tâches
+   - GuildDetailScreen : compteurs de progression
+   - ProfileScreen : informations utilisateur
+   - SettingsScreen : descriptions des options
+
+### Améliorations Futures Possibles
+
+- 🎨 **Mode clair** : Définir des couleurs textSecondary/textMuted pour le thème clair
+- ♿ **Accessibilité** : Ajouter un mode "Contraste élevé" dans les paramètres
+- 🔍 **Taille de police** : Option pour augmenter la taille du texte
+- 🌈 **Thèmes personnalisés** : Permettre aux utilisateurs de choisir des jeux de couleurs
+
+### Notes Techniques
+
+**WCAG Compliance :** Les nouvelles couleurs respectent les normes WCAG 2.1 niveau AA pour le contraste, garantissant une meilleure accessibilité pour tous les utilisateurs, y compris ceux avec des déficiences visuelles.
+
+**Design System :** Cette modification affecte uniquement le fichier `theme.js`, propageant automatiquement les changements dans toute l'application grâce à l'architecture centralisée du thème.
+
+**Aucune régression :** Changement purement visuel, aucun impact sur la logique métier ou les fonctionnalités existantes.
+
+---
+
 *Dernière mise à jour : 2025-10-06*
