@@ -348,7 +348,9 @@ app.post('/checklist-rpg-groupe/guilds', async (req, res) => {
   try {
     const guild = new Guild(req.body);
     await guild.save();
-    res.status(201).json(guild);
+    // Populate members and quests to ensure consistency with other guild endpoints
+    const populatedGuild = await Guild.findById(guild._id).populate('members').populate('quests');
+    res.status(201).json(populatedGuild);
   } catch (error) {
     res.status(400).json({ error: error.message });
   }
